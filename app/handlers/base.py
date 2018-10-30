@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import pickle
 import json
 from json import JSONDecodeError
-from app import redis
+from app import redis, redis_b
 import tornado.web
 from raven.contrib.tornado import SentryMixin
 from tornado.escape import json_decode
@@ -41,22 +42,31 @@ class BaseHandler(SentryMixin, tornado.web.RequestHandler):
 
 
 class AuthHandler(BaseHandler, Client):
+    result = None
 
     def initialize(self):
+        ''' 初始化参数 '''
         token = self.request.headers.get("token")
-        self.token_info = redis.hgetall('token:' + token)
+        self.token_info = redis_b.hgetall('token:' + token)
 
     def prepare(self):
-        if self.current_user['status_code'] == 200:
-            super(AuthHandler, self).prepare()
-            self.user_client = self.current_user['data']
-        else:
-            self.write_json(self.current_user['data'])
-            return
-
-    def get_current_user(self):
         if not self.token_info:
-            return {"data": 'token无效', 'status_code': 400}
-        user = School(self.token_info['url']).get_auth_user(self.token_info['account'])
-        return user
+            self.write_json(data='token无效', status_code=400)
+        else:
+            # 获取缓存
+            self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}"
+            self.cache_data = redis.get(self.redis_key)
+            if self.cache_data:
+                self.cache_data = pickle.loads(self.cache_data)
+                self.time_out = redis.ttl(self.redis_key)
+            super(AuthHandler, self).prepare()
 
+    @property
+    def user_client(self):
+        # 请求数据
+        school = School(self.token_info['url'])
+        return school.get_auth_user(self.token_info['account'])['data']
+
+    def save_cache(self, result, ttl=86400 * 2):
+        # 缓存数据
+        redis.set(self.redis_key, pickle.dumps(result['data']), ttl)

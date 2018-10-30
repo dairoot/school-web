@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+import pickle
 import string
 import random
+from app import redis
 from school_api.exceptions import SchoolException, LoginException, IdentityException
 
 
@@ -23,7 +25,6 @@ def service_resp():
             except SchoolException as reqe:
                 return {'data': str(reqe), 'status_code': 400}
             else:
-
                 return {'data': data, 'status_code': 200}
 
         return warpper

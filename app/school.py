@@ -30,12 +30,15 @@ class Client(object):
 
     @service_resp()
     def get_schedule(self):
+        ''' 获取课表信息 '''
         return self.user_client.get_schedule()
 
     @service_resp()
     def get_score(self):
+        ''' 获取成绩信息 '''
         return self.user_client.get_score()
 
     @service_resp()
     def get_info(self):
+        ''' 获取用户信息 '''
         return self.user_client.get_info()
