@@ -11,6 +11,8 @@ from app.settings import DEBUG, logger
 
 
 class BaseHandler(SentryMixin, tornado.web.RequestHandler):
+    result = None
+
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.set_header('Content-Type', 'application/json')
@@ -42,7 +44,6 @@ class BaseHandler(SentryMixin, tornado.web.RequestHandler):
 
 
 class AuthHandler(BaseHandler, Client):
-    result = None
 
     def initialize(self):
         ''' 初始化参数 '''
@@ -67,6 +68,6 @@ class AuthHandler(BaseHandler, Client):
         school = School(self.token_info['url'])
         return school.get_auth_user(self.token_info['account'])['data']
 
-    def save_cache(self, result, ttl=86400 * 2):
+    def save_cache(self, data, ttl=86400 * 7):
         # 缓存数据
-        redis.set(self.redis_key, pickle.dumps(result['data']), ttl)
+        redis.set(self.redis_key, pickle.dumps(data), ttl)
