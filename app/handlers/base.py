@@ -7,7 +7,7 @@ import tornado.web
 from raven.contrib.tornado import SentryMixin
 from tornado.escape import json_decode
 from app.school import School, Client
-from app.settings import DEBUG, logger
+from app.settings import DEBUG, logger, cache_time
 
 
 class BaseHandler(SentryMixin, tornado.web.RequestHandler):
@@ -68,6 +68,6 @@ class AuthHandler(BaseHandler, Client):
         school = School(self.token_info['url'])
         return school.get_auth_user(self.token_info['account'])['data']
 
-    def save_cache(self, data, ttl=86400 * 7):
+    def save_cache(self, data, ttl=cache_time):
         # 缓存数据
         redis.set(self.redis_key, pickle.dumps(data), ttl)

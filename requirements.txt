@@ -1,0 +1,4 @@
+School-Api
+tornado==5.1.1
+raven==6.9.0
+redis==2.10.6

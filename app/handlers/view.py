@@ -2,13 +2,14 @@
 from app import redis
 from app.school import School
 from app.handlers.base import BaseHandler, AuthHandler
-from app.settings import logger
+from app.settings import logger, cache_time
 
 
 class Login(BaseHandler):
     ''' 用户登录 '''
 
     async def post(self):
+
         self.school = School(self.data['url'])
         self.result = self.school.get_login(self.data["account"], self.data["password"])
         self.write_json(**self.result)
@@ -34,14 +35,14 @@ class Schedule(AuthHandler):
     async def get(self):
         if self.cache_data:
             self.write_json(self.cache_data)
-            # 当过期时间小于1天时，再次更新
-            if self.time_out < 86400:
+            # 当缓存时间已过1天，则更新数据
+            if self.time_out < cache_time - 86400:
                 result = self.get_schedule()
-                self.save_cache(result['data'])
+                self.save_cache(result['data'], cache_time)
         else:
             result = self.get_schedule()
             self.write_json(**result)
-            self.save_cache(result['data'])
+            self.save_cache(result['data'], cache_time)
 
 
 class Score(AuthHandler):
@@ -60,6 +61,7 @@ class UserInfo(AuthHandler):
     ''' 用户信息获取 '''
 
     async def get(self):
+
         if self.cache_data:
             self.write_json(self.cache_data)
         else:
