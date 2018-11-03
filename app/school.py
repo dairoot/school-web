@@ -29,14 +29,14 @@ class Client(object):
     user_client = None
 
     @service_resp()
-    def get_schedule(self):
+    def get_schedule(self, **kwargs):
         ''' 获取课表信息 '''
-        return self.user_client.get_schedule()
+        return self.user_client.get_schedule(**kwargs)
 
     @service_resp()
-    def get_score(self):
+    def get_score(self, **kwargs):
         ''' 获取成绩信息 '''
-        return self.user_client.get_score()
+        return self.user_client.get_score(**kwargs)
 
     @service_resp()
     def get_info(self):

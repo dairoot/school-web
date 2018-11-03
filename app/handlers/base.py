@@ -12,11 +12,12 @@ from app.settings import DEBUG, logger, cache_time
 from tornado.web import RequestHandler
 from tornado.escape import json_decode
 from tornado.concurrent import run_on_executor
-
+from schema import SchemaError, Schema
 
 class BaseHandler(SentryMixin, RequestHandler):
     result = None
-    school = None
+    data = {}
+    data_schema = Schema({})
     executor = ThreadPoolExecutor(5)
 
     def __init__(self, application, request, **kwargs):
@@ -25,7 +26,6 @@ class BaseHandler(SentryMixin, RequestHandler):
 
     def prepare(self):
         """只处理 JSON body"""
-
         if self.request.body:
             try:
                 json_data = json_decode(self.request.body)
@@ -33,6 +33,11 @@ class BaseHandler(SentryMixin, RequestHandler):
                 self.write_json('无效的 JSON', 400)
             else:
                 self.data = json_data
+
+        try:
+            self.data_schema.validate(self.data)
+        except SchemaError as emsg:
+            self.write_json(str(emsg), 400)
 
     def write_json(self, data, status_code=200):
         self.set_status(status_code)
@@ -46,21 +51,6 @@ class BaseHandler(SentryMixin, RequestHandler):
         else:
             logger.error(self._reason)
             # TODO
-
-    def on_finish(self):
-        base_log = f"IP：{self.request.remote_ip}，用户：{self.data['account']}"
-        if self.result['status_code'] == 200:
-            key = f"token:{self.result['data']['token']}"
-            redis.hmset(key, {"url": self.data['url'], "account": self.data["account"]})
-            redis.expire(key, 3600)
-
-            # 获取用户信息
-            user_client = self.school.get_auth_user(self.data['account'])['data']
-            user_info = user_client.get_info()
-            logger.info("%s，绑定成功：%s", base_log, user_info['real_name'])
-            # TODO 保存用户信息
-        else:
-            logger.warning("%s，错误信息：%s", base_log, self.result['data'])
 
 
 class AuthHandler(BaseHandler, Client):
@@ -99,7 +89,7 @@ class AuthHandler(BaseHandler, Client):
 
     @run_on_executor
     def async_func(self, func):
-        return func()
+        return func(**self.data)
 
     def on_finish(self):
         if self.token_info:
