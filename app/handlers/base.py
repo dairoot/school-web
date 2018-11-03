@@ -2,18 +2,21 @@
 import json
 import pickle
 from json import JSONDecodeError
-from app import redis, redis_b
-import tornado.web
+from concurrent.futures import ThreadPoolExecutor
 from raven.contrib.tornado import SentryMixin
-from tornado.escape import json_decode
+from app import redis_school, redis
+
 from app.school import School, Client
 from app.settings import DEBUG, logger, cache_time
-from concurrent.futures import ThreadPoolExecutor
+
+from tornado.web import RequestHandler
+from tornado.escape import json_decode
 from tornado.concurrent import run_on_executor
 
 
-class BaseHandler(SentryMixin, tornado.web.RequestHandler):
+class BaseHandler(SentryMixin, RequestHandler):
     result = None
+    school = None
     executor = ThreadPoolExecutor(5)
 
     def __init__(self, application, request, **kwargs):
@@ -44,13 +47,32 @@ class BaseHandler(SentryMixin, tornado.web.RequestHandler):
             logger.error(self._reason)
             # TODO
 
+    def on_finish(self):
+        base_log = f"IP：{self.request.remote_ip}，用户：{self.data['account']}"
+        if self.result['status_code'] == 200:
+            key = f"token:{self.result['data']['token']}"
+            redis.hmset(key, {"url": self.data['url'], "account": self.data["account"]})
+            redis.expire(key, 3600)
+
+            # 获取用户信息
+            user_client = self.school.get_auth_user(self.data['account'])['data']
+            user_info = user_client.get_info()
+            logger.info("%s，绑定成功：%s", base_log, user_info['real_name'])
+            # TODO 保存用户信息
+        else:
+            logger.warning("%s，错误信息：%s", base_log, self.result['data'])
+
 
 class AuthHandler(BaseHandler, Client):
+    token_info = None
+    cache_ttl = None
+    redis_key = None
+    cache_data = None
 
     def initialize(self):
         ''' 初始化参数 '''
         token = self.request.headers.get("token")
-        self.token_info = redis_b.hgetall('token:' + token)
+        self.token_info = redis.hgetall('token:' + token)
 
     def prepare(self):
         if not self.token_info:
@@ -58,10 +80,10 @@ class AuthHandler(BaseHandler, Client):
         else:
             # 获取缓存
             self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}"
-            self.cache_data = redis.get(self.redis_key)
+            self.cache_data = redis_school.get(self.redis_key)
             if self.cache_data:
                 self.result = {'data': pickle.loads(self.cache_data), 'status_code': 200}
-                self.time_out = redis.ttl(self.redis_key)
+                self.cache_ttl = redis_school.ttl(self.redis_key)
             super(AuthHandler, self).prepare()
 
     @property
@@ -73,7 +95,7 @@ class AuthHandler(BaseHandler, Client):
     def save_cache(self, ttl=cache_time):
         # 缓存数据
         if self.result['status_code'] == 200:
-            redis.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
+            redis_school.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
 
     @run_on_executor
     def async_func(self, func):
@@ -85,6 +107,6 @@ class AuthHandler(BaseHandler, Client):
             if self.result['status_code'] == 200:
                 logger.info("%s 进行%s操作", base_log, self.__class__.__name__)
             else:
-                logger.warn("%s，%s", base_log, self.result['data'])
+                logger.warning("%s，%s", base_log, self.result['data'])
         else:
-            logger.warn("无效token：%s", self.request.headers.get("token"))
+            logger.warning("无效token：%s", self.request.headers.get("token"))

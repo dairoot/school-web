@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from app import redis
+from app import redis_school
 from school_api import SchoolClient
 from school_api.session.redisstorage import RedisStorage
 from app.utils import service_resp, random_string
 
-session = RedisStorage(redis)
+session = RedisStorage(redis_school)
 
 
 class School(object):

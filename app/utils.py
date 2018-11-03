@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-import pickle
 import string
 import random
-from app import redis
 from school_api.exceptions import SchoolException, LoginException, IdentityException
 
 
