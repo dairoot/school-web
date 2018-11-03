@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import pickle
 import json
+import pickle
 from json import JSONDecodeError
 from app import redis, redis_b
 import tornado.web
@@ -8,10 +8,13 @@ from raven.contrib.tornado import SentryMixin
 from tornado.escape import json_decode
 from app.school import School, Client
 from app.settings import DEBUG, logger, cache_time
+from concurrent.futures import ThreadPoolExecutor
+from tornado.concurrent import run_on_executor
 
 
 class BaseHandler(SentryMixin, tornado.web.RequestHandler):
     result = None
+    executor = ThreadPoolExecutor(5)
 
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
@@ -71,6 +74,10 @@ class AuthHandler(BaseHandler, Client):
         # 缓存数据
         if self.result['status_code'] == 200:
             redis.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
+
+    @run_on_executor
+    def async_func(self, func):
+        return func()
 
     def on_finish(self):
         if self.token_info:

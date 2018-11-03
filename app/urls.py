@@ -6,5 +6,4 @@ url_patterns = [
     (r'/schedule', Schedule),
     (r'/score', Score),
     (r'/user-info', UserInfo),
-
 ]
