@@ -26,7 +26,6 @@ class BaseHandler(SentryMixin, tornado.web.RequestHandler):
             except JSONDecodeError:
                 self.write_json('无效的 JSON', 400)
             else:
-                # 使用 MultiDict 是为了适配 WTForms
                 self.data = json_data
 
     def write_json(self, data, status_code=200):
@@ -58,16 +57,27 @@ class AuthHandler(BaseHandler, Client):
             self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}"
             self.cache_data = redis.get(self.redis_key)
             if self.cache_data:
-                self.cache_data = pickle.loads(self.cache_data)
+                self.result = {'data': pickle.loads(self.cache_data), 'status_code': 200}
                 self.time_out = redis.ttl(self.redis_key)
             super(AuthHandler, self).prepare()
 
     @property
     def user_client(self):
-        # 请求数据
+        # 返回请求对象
         school = School(self.token_info['url'])
         return school.get_auth_user(self.token_info['account'])['data']
 
-    def save_cache(self, data, ttl=cache_time):
+    def save_cache(self, ttl=cache_time):
         # 缓存数据
-        redis.set(self.redis_key, pickle.dumps(data), ttl)
+        if self.result['status_code'] == 200:
+            redis.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
+
+    def on_finish(self):
+        if self.token_info:
+            base_log = f"IP：{self.request.remote_ip}，用户：{self.token_info['account']}"
+            if self.result['status_code'] == 200:
+                logger.info("%s 进行%s操作", base_log, self.__class__.__name__)
+            else:
+                logger.warn("%s，%s", base_log, self.result['data'])
+        else:
+            logger.warn("无效token：%s", self.request.headers.get("token"))
