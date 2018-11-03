@@ -14,6 +14,7 @@ from tornado.escape import json_decode
 from tornado.concurrent import run_on_executor
 from schema import SchemaError, Schema
 
+
 class BaseHandler(SentryMixin, RequestHandler):
     result = None
     data = {}
@@ -35,7 +36,7 @@ class BaseHandler(SentryMixin, RequestHandler):
                 self.data = json_data
 
         try:
-            self.data_schema.validate(self.data)
+            self.data = self.data_schema.validate(self.data)
         except SchemaError as emsg:
             self.write_json(str(emsg), 400)
 
@@ -68,13 +69,15 @@ class AuthHandler(BaseHandler, Client):
         if not self.token_info:
             self.write_json(data='token无效', status_code=400)
         else:
+            super(AuthHandler, self).prepare()
+
             # 获取缓存
-            self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}"
+            self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}:{self.data}"
             self.cache_data = redis_school.get(self.redis_key)
             if self.cache_data:
                 self.result = {'data': pickle.loads(self.cache_data), 'status_code': 200}
                 self.cache_ttl = redis_school.ttl(self.redis_key)
-            super(AuthHandler, self).prepare()
+
 
     @property
     def user_client(self):
