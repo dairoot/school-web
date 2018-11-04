@@ -9,7 +9,6 @@ import tornado.gen
 from schema import Schema, Optional
 
 
-
 class Login(BaseHandler):
     ''' 用户登录 '''
     school = None
@@ -26,8 +25,8 @@ class Login(BaseHandler):
         self.write_json(**self.result)
 
     def on_finish(self):
-        base_log = f"IP：{self.request.remote_ip}，用户：{self.data['account']}"
         if self.result:
+            base_log = f"IP：{self.request.remote_ip}，用户：{self.data['account']}"
             if self.result['status_code'] == 200:
                 key = f"token:{self.result['data']['token']}"
                 redis.hmset(key, {"url": self.data['url'], "account": self.data["account"]})

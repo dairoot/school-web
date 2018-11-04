@@ -63,7 +63,7 @@ class AuthHandler(BaseHandler, Client):
     def initialize(self):
         ''' 初始化参数 '''
         token = self.request.headers.get("token")
-        self.token_info = redis.hgetall('token:' + token)
+        self.token_info = redis.hgetall(f'token:{token}')
 
     def prepare(self):
         if not self.token_info:

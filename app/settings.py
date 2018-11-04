@@ -18,7 +18,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'default'],
     },
     'formatters': {
         'simple': {
@@ -32,10 +32,18 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
+        'default': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'simple',
+            'filename': 'logs/default.log',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5
+        }
     },
     'loggers': {
         'tornado': {
-            'handlers': ['console'],
+            'handlers': ['console', 'default'],
             'propagate': False,
         },
     },
