@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
+from app import redis
 from app.school import School
 from app.handlers.base import BaseHandler, AuthHandler
-from app.settings import cache_time
-from app import redis
-from app.settings import logger
+from app.settings import cache_time, logger
+from app.utils import school_year_validate, school_term_validate
 from tornado.concurrent import run_on_executor
 import tornado.gen
 from schema import Schema, Optional
+
 
 
 class Login(BaseHandler):
@@ -43,10 +44,11 @@ class Login(BaseHandler):
 
 class Schedule(AuthHandler):
     ''' 课表获取 '''
+
     data_schema = Schema({
-        Optional('schedule_year', default=None): str,
-        Optional('schedule_term', default=None): str,
-        Optional('schedule_type', default=0): int
+        Optional('schedule_year', default=None): school_year_validate,
+        Optional('schedule_term', default=None): school_term_validate,
+        Optional('schedule_type', default=0): lambda x: 1 <= x <= 2
     })
 
     @tornado.gen.coroutine
@@ -74,9 +76,9 @@ class Schedule(AuthHandler):
 class Score(AuthHandler):
     ''' 成绩获取 '''
     data_schema = Schema({
-        Optional('score_year', default=None): str,
-        Optional('score_term', default=None): str,
-        Optional('use_api', default=0): int
+        Optional('score_year', default=None): school_year_validate,
+        Optional('score_term', default=None): school_term_validate,
+        Optional('use_api', default=0): lambda x: 0 <= x <= 2
     })
 
     @tornado.gen.coroutine

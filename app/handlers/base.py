@@ -96,10 +96,11 @@ class AuthHandler(BaseHandler, Client):
 
     def on_finish(self):
         if self.token_info:
-            base_log = f"IP：{self.request.remote_ip}，用户：{self.token_info['account']}"
-            if self.result['status_code'] == 200:
-                logger.info("%s 进行%s操作", base_log, self.__class__.__name__)
-            else:
-                logger.warning("%s，%s", base_log, self.result['data'])
+            if self.result:
+                base_log = f"IP：{self.request.remote_ip}，用户：{self.token_info['account']}"
+                if self.result['status_code'] == 200:
+                    logger.info("%s 进行%s操作", base_log, self.__class__.__name__)
+                else:
+                    logger.warning("%s，%s", base_log, self.result['data'])
         else:
             logger.warning("无效token：%s", self.request.headers.get("token"))

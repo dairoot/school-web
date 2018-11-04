@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+import datetime
 import string
 import random
 from school_api.exceptions import SchoolException, LoginException, IdentityException
+
+current_year = datetime.datetime.now().year
+
+school_year_validate = lambda x: current_year - 4 <= int(x.split('-')[0]) < int(x.split('-')[1]) <= int(
+    x.split('-')[0]) + 1 <= current_year + 1
+school_term_validate = lambda x: 1 <= int(x) <= 2
 
 
 def random_string(length=16):
