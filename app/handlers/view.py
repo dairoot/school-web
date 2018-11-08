@@ -102,10 +102,18 @@ class UserInfo(AuthHandler):
     ''' 用户信息获取 '''
 
     @tornado.gen.coroutine
-    def get(self):
+    def get_data(self):
         if self.result:
             self.write_json(**self.result)
         else:
             self.result = yield self.async_func(self.get_info)
             self.write_json(**self.result)
             self.save_cache()
+
+    @tornado.gen.coroutine
+    def get(self):
+        yield self.get_data()
+
+    @tornado.gen.coroutine
+    def post(self):
+        yield self.get_data()

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17-beta.0/vue.min.js"></script>
+
+<script src="https://cdn.bootcss.com/vue-resource/1.5.1/vue-resource.min.js"></script>
+
+
+<script>
+window.onload=function(){
+  new Vue({
+      el:'#box',
+      data:{
+        xn: "2015-2016",
+        xq: "1",
+        url: null,
+        account: null,
+        password: null
+      },
+      methods:{
+        getLogin:function(){
+          var _this = this
+          if(_this.url && _this.account && _this.password){
+            var data = {
+              "url": _this.url,
+              "account": _this.account,
+              "password": _this.password
+            }
+            this.$http.post('/login', JSON.stringify(data)).then(function(res){
+              console.log(res.data.token)
+              Vue.http.headers.common['token'] = res.data.token;
+              $("#profile-tab").removeClass("disabled");
+              $("#home-tab").addClass("disabled");
+              $('#myTab a:last').tab('show')
+            },function(res){
+              alert(res.data);
+            });
+          }else{
+            alert("请完整填写信息")
+          }
+
+      },
+        query:function(path){
+          data = {"schedule": null, "score": null, "user-info": {}}
+          data['schedule'] = {
+            "schedule_year": this.xn,
+            "schedule_term": this.xq
+          }
+          data['score'] = {
+            "score_year": this.xn,
+            "score_term": this.xq
+          }
+
+          this.$http.post('/'+ path, JSON.stringify(data[path])).then(function(res){
+            
+            jsonData = "<pre class='table-bordered'><code>"+JSON.stringify(res.data, null, 1)+"</code></pre>"
+            $("#json-data").html(jsonData);
+              console.log(res.data);
+          },function(res){
+            alert(res.data);
+        });
+      }
+    }
+  })
+}
+</script>
+</head>
+
+<body >
+  <div class="container" style="margin-top:5%">
+
+    <div class="col-md-8" id="box">
+
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">登录</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">信息查询</a>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="myTabContent" style="margin-top: 20px;">
+        <!-- 登录标签 -->
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+          <div class="form-group">
+            <label for="url">请求地址</label>
+            <input v-model="url" type="text" class="form-control" placeholder="http://210.38.137.126:8016">
+          </div>
+          <div class="form-group">
+            <label for="account">学号</label>
+            <input v-model="account" type="text" class="form-control" id="account" placeholder="请输入学号">
+          </div>
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input  v-model="password" type="password" class="form-control" id="password" placeholder="请输入密码">
+          </div>
+          <button type="button" class="btn btn-primary"  v-on:click="getLogin()">登录</button>
+        </div>
+        <!-- 查询标签 -->
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+          <!-- 学年学期选择 -->
+          <div class="form-group">
+            <div class="form-group row">
+            <label for="xn" class="col-md-2 control-label">学年</label>
+            <select id="xn" class="form-control col-md-3" v-model="xn">
+              <option value="2015-2016">2015-2016</option>
+              <option value="2016-2017">2016-2017</option>
+              <option value="2017-2018">2017-2018</option>
+              <option value="2018-2019">2018-2019</option>
+            </select>
+            </div>
+            <div class="form-group row">
+            <label for="xq" class="col-md-2 control-label">学期</label>
+            <select id="xq" class="form-control col-md-3" v-model="xq">
+              <option value="1">1</option>
+              <option value="2">2</option>                        
+            </select>
+            </div>
+          </div>
+     
+
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline-light text-dark" v-on:click="query('schedule')">获取课表信息</button>
+            <button type="button" class="btn btn-outline-light text-dark" v-on:click="query('score')">获取成绩信息</button>
+            <button type="button" class="btn btn-outline-light text-dark" v-on:click="query('user-info')">获取用户信息</button>
+          </div>
+          <div class='pre-scrollable' style="margin: 10px 0 100px 0;" id="json-data"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://getbootstrap.com/docs/4.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
+

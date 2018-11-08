@@ -9,6 +9,7 @@ cache_time = 86400 * 7
 
 application_settings = {
     'debug': DEBUG,
+    'template_path': 'templates',
 }
 
 DSN = ''
