@@ -56,10 +56,10 @@ class Schedule(AuthHandler):
             self.write_json(**self.result)
             # 当缓存时间已过1天，则更新数据
             if self.cache_ttl < cache_time - 86400:
-                self.result = yield self.async_func(self.get_schedule)
+                self.result = yield self.async_func(self.get_schedule, self.data)
                 self.save_cache(cache_time)
         else:
-            self.result = yield self.async_func(self.get_schedule)
+            self.result = yield self.async_func(self.get_schedule, self.data)
             self.write_json(**self.result)
             self.save_cache(cache_time)
 
@@ -80,13 +80,28 @@ class Score(AuthHandler):
         Optional('use_api', default=0): lambda x: 0 <= x <= 2
     })
 
+    def score_result(self):
+        score_year = self.data['score_year']
+        score_term = self.data['score_term']
+        data = {}
+        data.update(self.result)
+        if score_year and data['status_code'] == 200:
+            if score_term:
+                data['data'] = data['data'].get(score_year, {}).get(str(score_term))
+                return data
+            data['data'] = data['data'].get(score_year)
+            return data
+        return data
+
     @tornado.gen.coroutine
     def get_data(self):
         if self.result:
-            self.write_json(**self.result)
+            score_data = self.score_result()
+            self.write_json(**score_data)
         else:
             self.result = yield self.async_func(self.get_score)
-            self.write_json(**self.result)
+            score_data = self.score_result()
+            self.write_json(**score_data)
             self.save_cache()
 
     @tornado.gen.coroutine

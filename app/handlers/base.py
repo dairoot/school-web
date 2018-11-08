@@ -72,7 +72,9 @@ class AuthHandler(BaseHandler, Client):
             super(AuthHandler, self).prepare()
 
             # 获取缓存
-            self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}:{self.data}"
+            self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}"
+            if self.__class__.__name__ == "Schedule":
+                self.redis_key = f"{self.redis_key}:{self.data}"
             self.cache_data = redis_school.get(self.redis_key)
             if self.cache_data:
                 self.result = {'data': pickle.loads(self.cache_data), 'status_code': 200}
@@ -91,8 +93,8 @@ class AuthHandler(BaseHandler, Client):
             redis_school.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
 
     @run_on_executor
-    def async_func(self, func):
-        return func(**self.data)
+    def async_func(self, func, data={}):
+        return func(**data)
 
     def on_finish(self):
         if self.token_info:
