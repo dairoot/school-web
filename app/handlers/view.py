@@ -12,12 +12,13 @@ from schema import Schema, Optional
 class Login(BaseHandler):
     ''' 用户登录 '''
     school = None
-    data_schema = Schema({'url': str, 'account': str, 'password': str})
+    data_schema = Schema({'url': str, 'account': str, 'password': str,
+    Optional('user_type', default=0): lambda x: 0 <= int(x) <= 2})
 
     @run_on_executor
     def async_login(self):
         self.school = School(self.data['url'])
-        return self.school.get_login(self.data["account"], self.data["password"])
+        return self.school.get_login(self.data["account"], self.data["password"], int(self.data['user_type']))
 
     @tornado.gen.coroutine
     def post(self):
@@ -47,11 +48,12 @@ class Schedule(AuthHandler):
     data_schema = Schema({
         Optional('schedule_year', default=None): school_year_validate,
         Optional('schedule_term', default=None): school_term_validate,
-        Optional('schedule_type', default=0): lambda x: 1 <= x <= 2
+        Optional('schedule_type', default=1): lambda x: 0 <= int(x) <= 1
     })
 
     @tornado.gen.coroutine
     def get_data(self):
+        self.data["schedule_type"] = int(self.data["schedule_type"])
         if self.result:
             self.write_json(**self.result)
             # 当缓存时间已过1天，则更新数据
@@ -77,7 +79,7 @@ class Score(AuthHandler):
     data_schema = Schema({
         Optional('score_year', default=None): school_year_validate,
         Optional('score_term', default=None): school_term_validate,
-        Optional('use_api', default=0): lambda x: 0 <= x <= 2
+        Optional('use_api', default=0): lambda x: 0 <= int(x) <= 2
     })
 
     def score_result(self):

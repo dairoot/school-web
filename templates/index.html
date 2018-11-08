@@ -2,6 +2,8 @@
 <html>
 <head>
 <meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 
 <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css">
 
@@ -13,14 +15,29 @@
 
 <script>
 window.onload=function(){
+  
   new Vue({
       el:'#box',
       data:{
-        xn: "2015-2016",
-        xq: "1",
+        api: 0,
         url: null,
+        userType: 0,
         account: null,
-        password: null
+        password: null,
+        scheduleType: 0,
+        xq: "1",
+        xn: "2015-2016",
+        path: "schedule"
+      },
+      watch: {
+          url(newVal,oldVal){
+            if (newVal.length > 3 && !new RegExp("^http").test(newVal) ){
+                this.url = "http://" + newVal
+            }
+            if (newVal.length > 7 && new RegExp("/$").test(newVal)){
+                this.url = newVal.slice(0,-1)
+            }
+          }
       },
       methods:{
         getLogin:function(){
@@ -29,13 +46,16 @@ window.onload=function(){
             var data = {
               "url": _this.url,
               "account": _this.account,
-              "password": _this.password
+              "password": _this.password,
+              "user_type": _this.userType
             }
             this.$http.post('/login', JSON.stringify(data)).then(function(res){
+              $("#json-data").hide();
+
               console.log(res.data.token)
               Vue.http.headers.common['token'] = res.data.token;
               $("#profile-tab").removeClass("disabled");
-              $("#home-tab").addClass("disabled");
+              // $("#home-tab").addClass("disabled");
               $('#myTab a:last').tab('show')
             },function(res){
               alert(res.data);
@@ -45,29 +65,52 @@ window.onload=function(){
           }
 
       },
-        query:function(path){
+        query:function(){
+          var _this = this
           data = {"schedule": null, "score": null, "user-info": {}}
           data['schedule'] = {
             "schedule_year": this.xn,
-            "schedule_term": this.xq
+            "schedule_term": this.xq,
+            "schedule_type": this.scheduleType
           }
           data['score'] = {
             "score_year": this.xn,
-            "score_term": this.xq
+            "score_term": this.xq,
+            "use_api": this.api
           }
 
-          this.$http.post('/'+ path, JSON.stringify(data[path])).then(function(res){
-            
-            jsonData = "<pre class='table-bordered'><code>"+JSON.stringify(res.data, null, 1)+"</code></pre>"
+          this.$http.post('/'+ _this.path, JSON.stringify(data[_this.path])).then(function(res){
+            $("#json-data").show();
+            jsonData = "<pre><code>"+JSON.stringify(res.data, null, 1)+"</code></pre>"
             $("#json-data").html(jsonData);
-              console.log(res.data);
           },function(res){
             alert(res.data);
         });
+      },
+      switchQu:function(path){
+        this.path = path
+        $("#json-data").hide();
+        if(path == "schedule"){
+            $("#xnView").show();
+            $("#xqView").show();
+            $("#typeView").show();
+            $("#apiView").hide();
+        }else if(path == "score"){
+            $("#xnView").show();
+            $("#xqView").show();
+            $("#apiView").show();
+            $("#typeView").hide();
+        }else{
+            $("#apiView").hide();
+            $("#xnView").hide();
+            $("#xqView").hide();
+            $("#typeView").hide();
+        }
       }
     }
   })
 }
+
 </script>
 </head>
 
@@ -90,7 +133,7 @@ window.onload=function(){
         <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
           <div class="form-group">
             <label for="url">请求地址</label>
-            <input v-model="url" type="text" class="form-control" placeholder="http://210.38.137.126:8016">
+            <input v-model="url" type="url" class="form-control" placeholder="请输入教务系统外网地址">
           </div>
           <div class="form-group">
             <label for="account">学号</label>
@@ -100,13 +143,26 @@ window.onload=function(){
             <label for="password">密码</label>
             <input  v-model="password" type="password" class="form-control" id="password" placeholder="请输入密码">
           </div>
-          <button type="button" class="btn btn-primary"  v-on:click="getLogin()">登录</button>
+    
+            <select class="form-control col-md-3 float-left" style="margin: 0 30px 10px 0;" v-model="userType">
+              <option value=0>学生</option>
+              <option value=1>教师</option>
+              <option value=2>部门</option>
+            </select>
+            <button type="button" class="btn btn-primary float-left"  v-on:click="getLogin()">登录</button>
+       
         </div>
         <!-- 查询标签 -->
         <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+          <div class="btn-group" style="margin-bottom: 20px;">
+            <button type="button" class="btn btn-light" v-on:click="switchQu('schedule')">查询课表信息</button>
+            <button type="button" class="btn btn-light" v-on:click="switchQu('score')">查询成绩信息</button>
+            <button type="button" class="btn btn-light" v-on:click="switchQu('user-info')">查询用户信息</button>
+          </div>
+
           <!-- 学年学期选择 -->
           <div class="form-group">
-            <div class="form-group row">
+            <div id="xnView" class="form-group row">
             <label for="xn" class="col-md-2 control-label">学年</label>
             <select id="xn" class="form-control col-md-3" v-model="xn">
               <option value="2015-2016">2015-2016</option>
@@ -115,22 +171,35 @@ window.onload=function(){
               <option value="2018-2019">2018-2019</option>
             </select>
             </div>
-            <div class="form-group row">
+
+            <div id="xqView" class="form-group row">
             <label for="xq" class="col-md-2 control-label">学期</label>
             <select id="xq" class="form-control col-md-3" v-model="xq">
               <option value="1">1</option>
               <option value="2">2</option>                        
             </select>
             </div>
-          </div>
-     
 
-          <div class="btn-group">
-            <button type="button" class="btn btn-outline-light text-dark" v-on:click="query('schedule')">获取课表信息</button>
-            <button type="button" class="btn btn-outline-light text-dark" v-on:click="query('score')">获取成绩信息</button>
-            <button type="button" class="btn btn-outline-light text-dark" v-on:click="query('user-info')">获取用户信息</button>
-          </div>
-          <div class='pre-scrollable' style="margin: 10px 0 100px 0;" id="json-data"></div>
+            <div id="apiView" style="display: none;" class="form-group row">
+            <label for="api" class="col-md-2 control-label">接口</label>
+            <select id="api" class="form-control col-md-3" v-model="api">
+              <option value=0>接口1</option>
+              <option value=1>接口2</option>                        
+              <option value=2>接口3</option>                        
+            </select>
+            </div>
+
+            <div id="typeView" class="form-group row">
+            <label for="scheduleType" class="col-md-2 control-label">类型</label>
+            <select id="scheduleType" class="form-control col-md-3" v-model="scheduleType">
+              <option value=0>个人课表</option>
+              <option value=1>班级课表</option>             
+            </select>
+            </div>
+  
+          <button type="button" class="btn btn-primary" v-on:click="query()">点击查询</button>
+
+          <div class='pre-scrollable table-bordered' style="margin: 10px 0 100px 0;" id="json-data"></div>
         </div>
 
       </div>

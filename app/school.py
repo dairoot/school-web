@@ -13,9 +13,9 @@ class School(object):
         self.school_client = SchoolClient(url, session=session, use_ex_handle=False)
 
     @service_resp()
-    def get_login(self, account, password):
+    def get_login(self, account, password, user_type=0):
         '''首次登陆验证'''
-        self.user = self.school_client.user_login(account, password, use_cookie=False)
+        self.user = self.school_client.user_login(account, password, user_type=user_type, use_cookie=False)
         return {"token": random_string(16)}
 
     @service_resp()
