@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
 import pickle
-from json import JSONDecodeError
 from concurrent.futures import ThreadPoolExecutor
 from raven.contrib.tornado import SentryMixin
 from app import redis
-
-from app.school import School, Client
+from app.school import Client
 from app.settings import DEBUG, logger, cache_time
 
 from tornado.web import RequestHandler
@@ -30,7 +28,7 @@ class BaseHandler(SentryMixin, RequestHandler):
         if self.request.body:
             try:
                 json_data = json_decode(self.request.body)
-            except JSONDecodeError:
+            except json.JSONDecodeError:
                 self.write_json('无效的 JSON', 400)
             else:
                 self.data = json_data
@@ -87,7 +85,8 @@ class AuthHandler(BaseHandler, Client):
             redis.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
 
     @run_on_executor
-    def async_func(self, func, data={}):
+    def async_func(self, func, data=None):
+        data = data or {}
         return func(**data)
 
     def on_finish(self):
