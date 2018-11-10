@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from app import redis_school
+from app import redis
 from school_api import SchoolClient
 from school_api.session.redisstorage import RedisStorage
-from app.utils import service_resp, random_string
+from app.utils import service_resp
 
-session = RedisStorage(redis_school)
+session = RedisStorage(redis)
 
 
 class School(object):
@@ -15,30 +15,23 @@ class School(object):
     @service_resp()
     def get_login(self, account, password, user_type=0):
         '''首次登陆验证'''
-        self.user = self.school_client.user_login(account, password, user_type=user_type, use_cookie=False)
-        return {"token": random_string(16)}
-
-    @service_resp()
-    def get_auth_user(self, account):
-        '''使用会话，免密码登陆'''
-        auth_user = self.school_client.user_login(account, None)
-        return auth_user
+        return self.school_client.user_login(account, password, user_type=user_type, use_cookie=False)
 
 
 class Client(object):
-    user_client = None
+    client = None
 
     @service_resp()
     def get_schedule(self, **kwargs):
         ''' 获取课表信息 '''
-        return self.user_client.get_schedule(**kwargs)
+        return self.client.get_schedule(**kwargs)
 
     @service_resp()
     def get_score(self, **kwargs):
         ''' 获取成绩信息 '''
-        return self.user_client.get_score(**kwargs)
+        return self.client.get_score(**kwargs)
 
     @service_resp()
     def get_info(self):
         ''' 获取用户信息 '''
-        return self.user_client.get_info()
+        return self.client.get_info()

@@ -4,7 +4,7 @@ import pickle
 from json import JSONDecodeError
 from concurrent.futures import ThreadPoolExecutor
 from raven.contrib.tornado import SentryMixin
-from app import redis_school, redis
+from app import redis
 
 from app.school import School, Client
 from app.settings import DEBUG, logger, cache_time
@@ -63,34 +63,28 @@ class AuthHandler(BaseHandler, Client):
     def initialize(self):
         ''' 初始化参数 '''
         token = self.request.headers.get("token")
-        self.token_info = redis.hgetall(f'token:{token}')
+        self.token_info = redis.get(f'token:{token}')
 
     def prepare(self):
         if not self.token_info:
             self.write_json(data='token无效', status_code=400)
         else:
+            self.client = pickle.loads(self.token_info)
             super(AuthHandler, self).prepare()
 
             # 获取缓存
-            self.redis_key = f"{self.token_info['url']}:{self.__class__.__name__}:{self.token_info['account']}"
+            self.redis_key = f"{self.client.base_url}:{self.__class__.__name__}:{self.client.account}"
             if self.__class__.__name__ == "Schedule":
                 self.redis_key = f"{self.redis_key}:{self.data}"
-            self.cache_data = redis_school.get(self.redis_key)
+            self.cache_data = redis.get(self.redis_key)
             if self.cache_data:
                 self.result = {'data': pickle.loads(self.cache_data), 'status_code': 200}
-                self.cache_ttl = redis_school.ttl(self.redis_key)
-
-
-    @property
-    def user_client(self):
-        # 返回请求对象
-        school = School(self.token_info['url'])
-        return school.get_auth_user(self.token_info['account'])['data']
+                self.cache_ttl = redis.ttl(self.redis_key)
 
     def save_cache(self, ttl=cache_time):
         # 缓存数据
         if self.result['status_code'] == 200:
-            redis_school.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
+            redis.set(self.redis_key, pickle.dumps(self.result['data']), ttl)
 
     @run_on_executor
     def async_func(self, func, data={}):
@@ -99,7 +93,7 @@ class AuthHandler(BaseHandler, Client):
     def on_finish(self):
         if self.token_info:
             if self.result:
-                base_log = f"IP：{self.request.remote_ip}，用户：{self.token_info['account']}"
+                base_log = f"IP：{self.request.remote_ip}，用户：{self.client.account}"
                 if self.result['status_code'] == 200:
                     logger.info("%s 进行%s操作", base_log, self.__class__.__name__)
                 else:

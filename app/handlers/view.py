@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+import pickle
 from app import redis
 from app.school import School
 from app.handlers.base import BaseHandler, AuthHandler
 from app.settings import cache_time, logger
-from app.utils import school_year_validate, school_term_validate
+from app.utils import school_year_validate, school_term_validate, random_string
 from tornado.concurrent import run_on_executor
 import tornado.gen
 from schema import Schema, Optional
@@ -11,33 +12,40 @@ from schema import Schema, Optional
 
 class Login(BaseHandler):
     ''' 用户登录 '''
+    client = None
     school = None
-    data_schema = Schema({'url': str, 'account': str, 'password': str,
-    Optional('user_type', default=0): lambda x: 0 <= int(x) <= 2})
+    data_schema = Schema({
+        'url': str, 'account': str, 'password': str,
+        Optional('user_type', default=0): lambda x: 0 <= int(x) <= 2
+    })
 
     @run_on_executor
     def async_login(self):
         self.school = School(self.data['url'])
-        return self.school.get_login(self.data["account"], self.data["password"], int(self.data['user_type']))
+        result = self.school.get_login(self.data["account"], self.data["password"], self.data['user_type'])
+        if result["status_code"] == 200:
+            self.client, result["data"] = result["data"], {"token": random_string()}
+        return result
 
     @tornado.gen.coroutine
     def post(self):
+        self.data['user_type'] = int(self.data['user_type'])
         self.result = yield self.async_login()
         self.write_json(**self.result)
 
     def on_finish(self):
         if self.result:
             base_log = f"IP：{self.request.remote_ip}，用户：{self.data['account']}"
-            if self.result['status_code'] == 200:
+            if self.client:
+                del self.client.session
+                del self.client.password
                 key = f"token:{self.result['data']['token']}"
-                redis.hmset(key, {"url": self.data['url'], "account": self.data["account"]})
-                redis.expire(key, 3600)
-
-                # 获取用户信息
-                user_client = self.school.get_auth_user(self.data['account'])['data']
-                user_info = user_client.get_info()
-                logger.info("%s，绑定成功：%s", base_log, user_info['real_name'])
-                # TODO 保存用户信息
+                redis.set(key, pickle.dumps(self.client, 4), 3600)
+                if self.data['user_type'] != 2:
+                    # 获取用户信息
+                    user_info = self.client.get_info()
+                    logger.info("%s，绑定成功：%s", base_log, user_info['real_name'])
+                    # TODO 保存用户信息
             else:
                 logger.warning("%s，错误信息：%s", base_log, self.result['data'])
 
@@ -101,7 +109,8 @@ class Score(AuthHandler):
             score_data = self.score_result()
             self.write_json(**score_data)
         else:
-            self.result = yield self.async_func(self.get_score)
+            data = {"use_api": int(self.data["use_api"])}
+            self.result = yield self.async_func(self.get_score, data)
             score_data = self.score_result()
             self.write_json(**score_data)
             self.save_cache()
