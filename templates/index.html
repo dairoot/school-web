@@ -41,6 +41,15 @@ window.onload=function(){
       },
       methods:{
         getLogin:function(){
+          $("#logniBtn").attr("disabled","disabled");
+          $("#logniBtn").data('original-text', $("#logniBtn").html());
+          $("#logniBtn").html('loading...');
+
+
+          // $("#logniBtn").removeAttr("disabled");
+          // $("#logniBtn").html($("#logniBtn").data('original-text'));
+
+
           var _this = this
           if(_this.url && _this.account && _this.password){
             var data = {
@@ -57,15 +66,28 @@ window.onload=function(){
               $("#profile-tab").removeClass("disabled");
               // $("#home-tab").addClass("disabled");
               $('#myTab a:last').tab('show')
+              $("#logniBtn").removeAttr("disabled");
+              $("#logniBtn").html($("#logniBtn").data('original-text'));
             },function(res){
+              $("#logniBtn").removeAttr("disabled");
+              $("#logniBtn").html($("#logniBtn").data('original-text'));
               alert(res.data);
+
             });
           }else{
+            $("#logniBtn").removeAttr("disabled");
+            $("#logniBtn").html($("#logniBtn").data('original-text'));
             alert("请完整填写信息")
           }
 
       },
         query:function(){
+          $("#queryBtn").attr("disabled","disabled");
+          $("#queryBtn").data('original-text', $("#queryBtn").html());
+          $("#queryBtn").html('loading...');
+
+
+
           var _this = this
           data = {"schedule": null, "score": null, "user-info": {}}
           data['schedule'] = {
@@ -83,8 +105,12 @@ window.onload=function(){
             $("#json-data").show();
             jsonData = "<pre><code>"+JSON.stringify(res.data, null, 1)+"</code></pre>"
             $("#json-data").html(jsonData);
+            $("#queryBtn").removeAttr("disabled");
+            $("#queryBtn").html($("#queryBtn").data('original-text'));
           },function(res){
             alert(res.data);
+            $("#queryBtn").removeAttr("disabled");
+            $("#queryBtn").html($("#queryBtn").data('original-text'));
         });
       },
       switchQu:function(path){
@@ -149,7 +175,7 @@ window.onload=function(){
               <option value=1>教师</option>
               <option value=2>部门</option>
             </select>
-            <button type="button" class="btn btn-primary float-left"  v-on:click="getLogin()">登录</button>
+            <button type="button" id="logniBtn" class="btn btn-primary float-left" v-on:click="getLogin()">登录</button>
        
         </div>
         <!-- 查询标签 -->
@@ -197,7 +223,7 @@ window.onload=function(){
             </select>
             </div>
   
-          <button type="button" class="btn btn-primary" v-on:click="query()">点击查询</button>
+          <button type="button" class="btn btn-primary" id="queryBtn" v-on:click="query()">点击查询</button>
 
           <div class='pre-scrollable table-bordered' style="margin: 10px 0 100px 0;" id="json-data"></div>
         </div>
