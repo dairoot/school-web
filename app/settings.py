@@ -3,6 +3,7 @@ import os
 import logging.config
 import logging
 
+DSN = os.environ.get('DSN')
 DEBUG = os.environ.get('DEBUG', False)
 
 cache_time = 86400 * 7
@@ -12,7 +13,7 @@ application_settings = {
     'template_path': 'templates',
 }
 
-DSN = ''
+
 
 # 开发时的日志配置，INFO 及以上级别的日志输出到 console。
 LOGGING = {

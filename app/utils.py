@@ -2,7 +2,8 @@
 import datetime
 import string
 import random
-from school_api.exceptions import SchoolException, LoginException, IdentityException
+from app.settings import logger
+from school_api.exceptions import SchoolException, LoginException, IdentityException, CheckCodeException
 
 current_year = datetime.datetime.now().year
 
@@ -23,12 +24,17 @@ def service_resp():
         def warpper(*args, **kwargs):
             try:
                 data = func(*args, **kwargs)
+            except CheckCodeException:
+                return {'data': "教务系统请求失败", 'status_code': 400}
             except IdentityException as reqe:
                 return {'data': str(reqe), 'status_code': 400}
             except LoginException as reqe:
                 return {'data': str(reqe), 'status_code': 400}
             except SchoolException as reqe:
                 return {'data': str(reqe), 'status_code': 400}
+            except Exception as reqe:
+                logger.error("请求出错 %s %s", func.__name__, reqe, exc_info=True)
+                return {'data': "教务系统请求失败", 'status_code': 400}
             else:
                 return {'data': data, 'status_code': 200}
 
