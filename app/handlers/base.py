@@ -22,6 +22,7 @@ class BaseHandler(SentryMixin, RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.set_header('Content-Type', 'application/json')
+        self.request.remote_ip = self.request.headers.get("X-Real-Ip") or self.request.remote_ip
 
     def prepare(self):
         """只处理 JSON body"""
