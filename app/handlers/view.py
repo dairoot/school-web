@@ -97,9 +97,9 @@ class Score(AuthHandler):
         data.update(self.result)
         if score_year and data['status_code'] == 200:
             if score_term:
-                data['data'] = data['data'].get(score_year, {}).get(str(score_term))
+                data['data'] = data['data'].get(score_year, {}).get(str(score_term), "暂无该学年学期成绩")
                 return data
-            data['data'] = data['data'].get(score_year)
+            data['data'] = data['data'].get(score_year, "暂无该学年学期成绩")
             return data
         return data
 

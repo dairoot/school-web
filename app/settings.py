@@ -14,13 +14,12 @@ application_settings = {
 }
 
 
-
 # 开发时的日志配置，INFO 及以上级别的日志输出到 console。
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'root': {
-        'handlers': ['console', 'default'],
+        'handlers': ['console'],
     },
     'formatters': {
         'simple': {
