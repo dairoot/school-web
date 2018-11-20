@@ -1,0 +1,17 @@
+version: "3"
+services:
+  app:
+    container_name: school_server
+    build: .
+    command: python serve.py -log_file_prefix=logs/server.log
+    environment:
+      - REDIS_HOST=redis
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/home
+    depends_on:
+      - redis
+      
+  redis:
+    image: redis:latest

@@ -19,7 +19,7 @@
 ## 运行
 ```bash
 pip install -r requirements.txt
-python serve.py -log_file_prefix=logs/server.log
+python serve.py
 ```
 
 ## 其他
