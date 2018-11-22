@@ -14,4 +14,4 @@ services:
       - redis
       
   redis:
-    image: redis:latest
+    image: redis:alpine
