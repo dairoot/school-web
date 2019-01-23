@@ -15,7 +15,7 @@ class School(object):
     @service_resp()
     def get_login(self, account, password, user_type=0):
         '''首次登陆验证'''
-        return self.school_client.user_login(account, password, user_type=user_type, use_cookie=False)
+        return self.school_client.user_login(account, password, user_type=user_type, use_login_cookie=False)
 
 
 class Client(object):
