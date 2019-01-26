@@ -3,7 +3,7 @@ import pickle
 from app import redis
 from app.school import School
 from app.handlers.base import BaseHandler, AuthHandler
-from app.settings import cache_time, logger
+from app.settings import cache_time, logger, school_list
 from app.utils import school_year_validate, school_term_validate, random_string
 from tornado.concurrent import run_on_executor
 import tornado.gen
@@ -25,6 +25,10 @@ class Login(BaseHandler):
         result = self.school.get_login(self.data["account"], self.data["password"], self.data['user_type'])
         if result["status_code"] == 200:
             self.client, result["data"] = result["data"], {"token": random_string()}
+            # 保存学校地址
+            url = self.data['url'].split("://")[1]
+            if url not in school_list.values():
+                school_list[url] = url
         return result
 
     @tornado.gen.coroutine

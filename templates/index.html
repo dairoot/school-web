@@ -3,17 +3,14 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-
 <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css">
-
 <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17-beta.0/vue.min.js"></script>
-
 <script src="https://cdn.bootcss.com/vue-resource/1.5.1/vue-resource.min.js"></script>
-
-
 <script>
+
+
+
 window.onload=function(){
   
   new Vue({
@@ -40,16 +37,15 @@ window.onload=function(){
           }
       },
       methods:{
+          fill_url:function(url){
+            this.url = url;
+          },
         getLogin:function(){
           $("#logniBtn").attr("disabled","disabled");
           $("#logniBtn").data('original-text', $("#logniBtn").html());
           $("#logniBtn").html('loading...');
-
-
           // $("#logniBtn").removeAttr("disabled");
           // $("#logniBtn").html($("#logniBtn").data('original-text'));
-
-
           var _this = this
           if(_this.url && _this.account && _this.password){
             var data = {
@@ -201,6 +197,14 @@ button{
             <label for="url">请求地址</label>
             <input v-model="url" type="url" class="form-control" placeholder="请输入教务系统外网地址">
           </div>
+
+        <div class="form-group">
+          {% for key in school_list%}
+          <a style="text-decoration:none; font-size: 14px; margin-right: 8px;" href="#"
+             v-on:click=fill_url('{{ school_list[key] }}')>{{ key }}</a>
+          {% end %}
+        </div>
+
           <div class="form-group">
             <label for="account">学号</label>
             <input v-model="account" type="text" class="form-control" id="account" placeholder="请输入学号">
