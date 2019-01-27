@@ -34,6 +34,7 @@ window.onload=function(){
             if (newVal.length > 7 && new RegExp("/$").test(newVal)){
                 this.url = newVal.slice(0,-1)
             }
+            this.url = this.url.split('/(')[0]
           }
       },
       methods:{
