@@ -91,7 +91,7 @@ class Score(AuthHandler):
     data_schema = Schema({
         Optional('score_year', default=None): school_year_validate,
         Optional('score_term', default=None): school_term_validate,
-        Optional('use_api', default=0): lambda x: 0 <= int(x) <= 2
+        Optional('use_api', default=0): lambda x: 0 <= int(x) <= 3
     })
 
     def score_result(self):

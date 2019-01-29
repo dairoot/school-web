@@ -19,6 +19,7 @@ school_list = {
     "广东青年职业学院": "jwxt.gdyvc.cn",
     "广州航海学院": "jw.gzhmt.edu.cn",
     "西安邮电大学": "222.24.62.120",
+    "福建师范大学": "jwgl.fjnu.edu.cn",
 }
 
 # 开发时的日志配置，INFO 及以上级别的日志输出到 console。
