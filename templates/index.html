@@ -202,7 +202,7 @@ button{
         <div class="form-group">
           {% for key in school_list%}
           <a style="text-decoration:none; font-size: 14px; margin-right: 8px;" href="#"
-             v-on:click=fill_url('{{ school_list[key] }}')>{{ key }}</a>
+             v-on:click=fill_url('{{ key }}')>{{ school_list[key] }}</a>
           {% end %}
         </div>
 
