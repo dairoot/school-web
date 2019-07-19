@@ -27,7 +27,7 @@ class Login(BaseHandler):
             self.client, result["data"] = result["data"], {"token": random_string()}
             # 保存学校地址
             url = self.data['url'].split("://")[1]
-            if url not in school_list.values():
+            if url not in school_list.keys():
                 school_list[url] = url
         return result
 

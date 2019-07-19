@@ -11,6 +11,8 @@ cache_time = 86400 * 7
 application_settings = {
     'debug': DEBUG,
     'template_path': 'templates',
+    'static_path' : 'static',
+
 }
 
 school_list = {
@@ -25,6 +27,10 @@ school_list = {
     "202.116.160.170": "华南农业大学",
     "xjw0.fjcc.edu.cn": "福建商学院",
     "ojjx.wzu.edu.cn": "温州大学",
+    "125.221.35.100": "武汉软件工程职业学院",
+    "jwxt.gcu.edu.cn": "华南理工大学广州学院",
+    "202.200.112.200": "西安理工大学",
+    "210.37.0.22": "海南师范大学"
 }
 
 # 开发时的日志配置，INFO 及以上级别的日志输出到 console。
