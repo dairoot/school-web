@@ -42,7 +42,6 @@ class Login(BaseHandler):
             base_log = f"IP：{self.request.remote_ip}，用户：{self.data['account']}"
             if self.client:
                 del self.client.session
-                del self.client.password
                 key = f"token:{self.result['data']['token']}"
                 redis.set(key, pickle.dumps(self.client, 4), 3600)
                 if self.data['user_type'] != 2:
