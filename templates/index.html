@@ -1,289 +1,370 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css">
-<script src="{{static_url('jquery-1.9.1.min.js')}}"></script>
-<script src="{{static_url('vue.min.js')}}"></script>
-<script src="{{static_url('vue-resource.min.js')}}"></script>
-<script>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
-
-window.onload=function(){
-  
-  new Vue({
-      el:'#box',
-      data:{
-        api: 0,
-        url: null,
-        userType: 0,
-        account: null,
-        password: null,
-        scheduleType: 0,
-        xq: "1",
-        xn: "2018-2019",
-        path: "schedule"
-      },
-      watch: {
-          url(newVal,oldVal){
-            if (newVal.length > 3 && !new RegExp("^http").test(newVal) ){
-                this.url = "http://" + newVal
-            }
-            if (newVal.length > 7 && new RegExp("/$").test(newVal)){
-                this.url = newVal.slice(0,-1)
-            }
-            this.url = this.url.split('/(')[0]
-            this.url = this.url.split('/default')[0]
-          }
-      },
-      methods:{
-          fill_url:function(url){
-            this.url = url;
-          },
-        getLogin:function(){
-          $("#logniBtn").attr("disabled","disabled");
-          $("#logniBtn").data('original-text', $("#logniBtn").html());
-          $("#logniBtn").html('loading...');
-          // $("#logniBtn").removeAttr("disabled");
-          // $("#logniBtn").html($("#logniBtn").data('original-text'));
-          var _this = this
-          if(_this.url && _this.account && _this.password){
-            var data = {
-              "url": _this.url,
-              "account": _this.account,
-              "password": _this.password,
-              "user_type": _this.userType
-            }
-            this.$http.post('/login', JSON.stringify(data)).then(function(res){
-              $("#json-data").hide();
-
-              console.log(res.data.token)
-              Vue.http.headers.common['token'] = res.data.token;
-              $("#profile-tab").removeClass("disabled");
-              // $("#home-tab").addClass("disabled");
-              $('#myTab a:first-child').tab('show')
-              $("#logniBtn").removeAttr("disabled");
-              $("#logniBtn").html($("#logniBtn").data('original-text'));
-            },function(res){
-              $("#logniBtn").removeAttr("disabled");
-              $("#logniBtn").html($("#logniBtn").data('original-text'));
-              alert(res.data);
-
-            });
-          }else{
-            $("#logniBtn").removeAttr("disabled");
-            $("#logniBtn").html($("#logniBtn").data('original-text'));
-            alert("请完整填写信息")
-	
-          }
-
-      },
-        query:function(){
-          $("#queryBtn").attr("disabled","disabled");
-          $("#queryBtn").data('original-text', $("#queryBtn").html());
-          $("#queryBtn").html('loading...');
-
-
-
-          var _this = this
-          data = {"schedule": null, "score": null, "user-info": {}}
-          data['schedule'] = {
-            "schedule_year": this.xn,
-            "schedule_term": this.xq,
-            "schedule_type": this.scheduleType
-          }
-          data['score'] = {
-            "score_year": this.xn,
-            "score_term": this.xq,
-            "use_api": this.api
-          }
-
-          this.$http.post('/'+ _this.path, JSON.stringify(data[_this.path])).then(function(res){
-            $("#json-data").show();
-            jsonData = "<pre><code>"+JSON.stringify(res.data, null, 1)+"</code></pre>"
-            $("#json-data").html(jsonData);
-            $("#queryBtn").removeAttr("disabled");
-            $("#queryBtn").html($("#queryBtn").data('original-text'));
-          },function(res){
-            alert(res.data);
-            $("#queryBtn").removeAttr("disabled");
-            $("#queryBtn").html($("#queryBtn").data('original-text'));
-        });
-      },
-      switchQu:function(path){
-        this.path = path
-        $("#json-data").hide();
-        if(path == "schedule"){
-            $("#xnView").show();
-            $("#xqView").show();
-            $("#typeView").show();
-            $("#apiView").hide();
-        }else if(path == "score"){
-            $("#xnView").show();
-            $("#xqView").show();
-            $("#apiView").show();
-            $("#typeView").hide();
-        }else{
-            $("#apiView").hide();
-            $("#xnView").hide();
-            $("#xqView").hide();
-            $("#typeView").hide();
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="/static/css/index.css"/>
+    <!-- 引入组件库 -->
+    <script src="/static/js/index.js"></script>
+    <style>
+        .el-form--label-top .el-form-item__label {
+            padding: 5px 0;
+            line-height: 20px;
         }
-      }
-    }
-  })
-}
 
-</script>
-<style>
-button{
- /* padding:0 4px !important;*/
-}
-.btn-group{
-  display:  flex !important;
-  flex-direction: row;
-}
-#myTabContent .btn-group button{
-  margin-right: 1px;
-  width:34%;
-}
-@media screen and (min-width: 1200px) {
-    .btn-group {
-       margin: 30px;
-       padding:3px;
-    }
-}
-@media screen and (max-width: 860px) {
-    .btn-group {
-       margin:10px 0;
-       padding:5px;
-    }
-    #queryBtn{
-      margin-left: 35%;
-    }
-}
-@media screen and (max-width: 360px) {
-    .btn-group {
-       padding:5px;
-    }
-    #myTabContent .btn-group button {
-       font-size: 13px;
-    }
-    #queryBtn{
-      margin-left: 35%;
-    }
-}
-@media 
-</style>
+        @media screen and (max-width: 960px) {
+            .my-drawer .el-drawer {
+                width: 75% !important;
+            }
+        }
+
+        @media screen and (min-width: 960px) {
+            .my-drawer .el-drawer {
+                width: 30% !important;
+            }
+
+        }
+
+        .el-drawer__header {
+            padding-bottom: 10px;
+            margin-bottom: 0px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .article {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+        }
+
+        .article:hover .el-link {
+            color: #409EFF;
+        }
+
+        .article-title:hover .el-icon-star-off {
+            color: #409EFF;
+            font-weight: bold;
+        }
+
+        .article-title:hover .el-link {
+            color: #409EFF;
+        }
+    </style>
 </head>
 
-<body >
-  <div class="container" style="margin-top:5%">
+<body>
 
-    <div class="col-md-8" id="box">
 
-      <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item">
-          <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">登录</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link disabled" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">信息查询</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link disabled">作者QQ: NjIzODE1ODI1</a>
-        </li>
-      </ul>
+<div id="app">
 
-      <div class="tab-content" id="myTabContent" style="margin-top: 20px;">
-        <!-- 登录标签 -->
-        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-          <div class="form-group">
-            <label for="url">请求地址</label>
-            <input v-model="url" type="url" class="form-control" placeholder="请输入教务系统外网地址">
-          </div>
+    <el-col sm="24" :md="{span: 12, offset: 4}">
 
-        <div class="form-group">
-          {% for key in school_list%}
-          <a style="text-decoration:none; font-size: 14px; margin-right: 8px;" href="#"
-             v-on:click=fill_url('{{ key }}')>{{ school_list[key] }}</a>
-          {% end %}
-        </div>
+        <el-link @click="drawer=true" :underline="false" style="margin: 0px 0px -60px 180px; z-index:1">
+            作者博客
+        </el-link>
 
-          <div class="form-group">
-            <label for="account">学号</label>
-            <input v-model="account" type="text" class="form-control" id="account" placeholder="请输入学号">
-          </div>
-          <div class="form-group">
-            <label for="password">密码</label>
-            <input  v-model="password" type="password" class="form-control" id="password" placeholder="请输入密码">
-          </div>
-    
-            <select class="form-control col-md-3 float-left" style="margin: 0 30px 10px 0;" v-model="userType">
-              <option value=0>学生</option>
-              <option value=1>教师</option>
-              <option value=2>部门</option>
-            </select>
-            <button type="button" id="logniBtn" class="btn btn-primary float-left" v-on:click="getLogin()">登录</button>
-       
-        </div>
-        <!-- 查询标签 -->
-        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-          <div class="btn-group" style="margin-bottom: 20px;">
-            <button type="button" class="btn btn-light" v-on:click="switchQu('schedule')">查询课表信息</button>
-            <button type="button" class="btn btn-light" v-on:click="switchQu('score')">查询成绩信息</button>
-            <button type="button" class="btn btn-light" v-on:click="switchQu('user-info')">查询用户信息</button>
-          </div>
+        <el-tabs type="card" v-model="homeTabName">
 
-          <!-- 学年学期选择 -->
-          <div class="form-group">
-            <div id="xnView" class="form-group row">
-            <label for="xn" class="col-md-2 control-label">学年</label>
-            <select id="xn" class="form-control col-md-3" v-model="xn">
-              <option value="2015-2016">2015-2016</option>
-              <option value="2016-2017">2016-2017</option>
-              <option value="2017-2018">2017-2018</option>
-              <option value="2018-2019">2018-2019</option>
-            </select>
+            <!-- 登录页面 -->
+            <el-tab-pane label="登录" name="loginTab">
+                <el-form label-position="top" :rules="loginRules" :model="formLogin" ref="formLogin">
+                    <el-form-item label="请求地址" prop="url">
+                        <el-select v-model="formLogin.url" allow-create default-first-option filterable remote
+                                   clearable placeholder="请输入教务系统外网地址" :remote-method="getSchoolName" :loading="loading"
+                                   @focus="focus" style="width: 100%;">
+                            <el-option v-for="item in list" :key="item.url" :label="item.name" :value="item.url">
+                                <span style="float: left">{{ item.name }}</span>
+                                <span style="float: right; color: #8492a6; font-size: 13px">{{ item.url }}</span>
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="学号" prop="account">
+                        <el-input v-model="formLogin.account" placeholder="请输入学号"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="密码" prop="password">
+                        <el-input v-model="formLogin.password" placeholder="请输入密码" show-password></el-input>
+                    </el-form-item>
+
+                    <el-form-item prop="user_type">
+                        <el-select v-model="formLogin.user_type" placeholder="请选择用户学年">
+                            <el-option label="学生" value="0"></el-option>
+                            <el-option label="教师" value="1"></el-option>
+                            <el-option label="部门" value="2"></el-option>
+                        </el-select>
+                        <el-button type="primary" @click="onLogin('formLogin')" :disabled="requesting"
+                                   v-text="loginTabBtnText">
+                        </el-button>
+                    </el-form-item>
+                </el-form>
+            </el-tab-pane>
+
+            <!-- 信息查询页面 -->
+            <el-tab-pane label="信息查询" name="infoTab" :disabled="tabSwitch">
+
+                <el-tabs type="border-card" v-model="infoTabName" @tab-click="clearResultData">
+                    <!-- 查询课表信息标签 -->
+                    <el-tab-pane label="查询课表信息" name="fromSchedule">
+                        <el-form>
+                            <el-form-item label="学年">
+                                <el-select v-model="fromSchedule.schedule_year" placeholder="请选择查询学年">
+                                    <el-option label="2016-2017" value="2016-2017"></el-option>
+
+                                    <el-option label="2017-2018" value="2017-2018"></el-option>
+                                    <el-option label="2018-2019" value="2018-2019"></el-option>
+                                </el-select>
+                            </el-form-item>
+
+                            <el-form-item label="学期">
+                                <el-select v-model="fromSchedule.schedule_term" placeholder="请选择查询学期">
+                                    <el-option label="1" value="1"></el-option>
+                                    <el-option label="2" value="2"></el-option>
+                                </el-select>
+                            </el-form-item>
+
+                            <el-form-item label="类型">
+                                <el-select v-model="fromSchedule.schedule_type" placeholder="类型">
+                                    <el-option label="个人课表" value="0"></el-option>
+                                    <el-option label="班级课表" value="1"></el-option>
+                                </el-select>
+                            </el-form-item>
+
+                            <el-form-item>
+                                <el-button type="primary" @click="request_data('/schedule', fromSchedule)"
+                                           :disabled="requesting" v-text="infoTabBtnText"></el-button>
+                            </el-form-item>
+
+                        </el-form>
+                    </el-tab-pane>
+                    <!-- 查询成绩信息标签 -->
+                    <el-tab-pane label="查询成绩信息" name="fromScore">
+                        <el-form>
+                            <el-form-item label="学年">
+                                <el-select v-model="fromScore.score_year" placeholder="请选择查询学年">
+                                    <el-option label="2016-2017" value="2016-2017"></el-option>
+                                    <el-option label="2017-2018" value="2017-2018"></el-option>
+                                    <el-option label="2018-2019" value="2018-2019"></el-option>
+                                </el-select>
+                            </el-form-item>
+
+                            <el-form-item label="学期">
+                                <el-select v-model="fromScore.score_term" placeholder="请选择查询学期">
+                                    <el-option label="1" value="1"></el-option>
+                                    <el-option label="2" value="2"></el-option>
+                                </el-select>
+                            </el-form-item>
+
+                            <el-form-item label="接口">
+                                <el-select v-model="fromScore.use_api" placeholder="请选择成绩接口">
+                                    <el-option label="接口1" value="0"></el-option>
+                                    <el-option label="接口2" value="1"></el-option>
+                                    <el-option label="接口3" value="2"></el-option>
+                                    <el-option label="接口4" value="3"></el-option>
+                                </el-select>
+                            </el-form-item>
+
+                            <el-form-item>
+                                <el-button type="primary" @click="request_data('/score', fromScore)"
+                                           :disabled="requesting" v-text="infoTabBtnText"></el-button>
+                            </el-form-item>
+
+                        </el-form>
+                    </el-tab-pane>
+                    <!-- 查询用户信息标签 -->
+                    <el-tab-pane label="查询用户信息" name="fromInfo">
+                        <el-form>
+                            <el-form-item>
+                                <el-button type="primary" @click="request_data('/user-info', {})"
+                                           :disabled="requesting" v-text="infoTabBtnText"></el-button>
+                            </el-form-item>
+                        </el-form>
+                    </el-tab-pane>
+                </el-tabs>
+                <el-scrollbar style="height: 250px; border: 1px solid #f0f0f0">
+                    <pre><code v-text="showData"></code></pre>
+                </el-scrollbar>
+            </el-tab-pane>
+        </el-tabs>
+    </el-col>
+
+    <el-drawer class="my-drawer" :visible.sync="drawer" size="30%">
+        <span slot="title">
+            <div class="article-title">
+                <i class="el-icon-star-off" style="vertical-align: middle;"></i>
+                <el-link style="font-size: 20px; font-weight:400;" href="https://blog.dairoot.cn/" target="_blank"
+                         :underline="false">dairoot 博客</el-link>
             </div>
 
-            <div id="xqView" class="form-group row">
-            <label for="xq" class="col-md-2 control-label">学期</label>
-            <select id="xq" class="form-control col-md-3" v-model="xq">
-              <option value="1">1</option>
-              <option value="2">2</option>                        
-            </select>
-            </div>
+        </span>
+        <el-scrollbar style="height: 90vh;">
+            <el-row v-for="item in rss" :key="item.title" class="article">
 
-            <div id="apiView" style="display: none;" class="form-group row">
-            <label for="api" class="col-md-2 control-label">接口</label>
-            <select id="api" class="form-control col-md-3" v-model="api">
-              <option value=0>接口1</option>
-              <option value=1>接口2</option>                        
-              <option value=2>接口3</option>                        
-              <option value=3>接口4</option>
-            </select>
-            </div>
+                <el-col :span="22" :offset="1">
+                    <div style="height: 60px; line-height: 60px;  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <el-link target="_blank" :underline="false" :href="item.url">
+                            <span style="font-size: 18px;font-weight:normal; !important;">{{ item.title }}</span>
+                        </el-link>
+                    </div>
+                    <div style="color: #909399; padding-bottom: 15px">
+                        <span style="padding-right: 20px"><i class="el-icon-time"></i> {{ item.date }}</span>
+                        <span><i class="el-icon-price-tag"></i>#{{item.tag}}</span>
+                    </div>
+                </el-col>
+            </el-row>
+            <el-row style="margin-top: 100px;"></el-row>
+        </el-scrollbar>
 
-            <div id="typeView" class="form-group row">
-            <label for="scheduleType" class="col-md-2 control-label">类型</label>
-            <select id="scheduleType" class="form-control col-md-3" v-model="scheduleType">
-              <option value=0>个人课表</option>
-              <option value=1>班级课表</option>             
-            </select>
-            </div>
-  
-          <button type="button" class="btn btn-primary" id="queryBtn" v-on:click="query()">点击查询</button>
+    </el-drawer>
 
-          <div class='pre-scrollable table-bordered' style="margin: 10px 0 100px 0;" id="json-data"></div>
-        </div>
+</div>
 
-      </div>
-    </div>
-  </div>
 
-  <script src="https://getbootstrap.com/docs/4.0/dist/js/bootstrap.min.js"></script>
+<script src="/static/js/axios.min.js"></script>
+
+<script>
+
+    new Vue({
+        el: '#app',
+        data: {
+            requesting: false,
+            drawer: false,
+            token: "",
+            tabSwitch: true,
+            homeTabName: "loginTab",
+            // homeTabName: "infoTab",
+            infoTabName: "fromSchedule",
+            showData: "",
+            loginTabBtnText: "登录",
+            infoTabBtnText: "查询",
+            resultData: {},
+            formLogin: {
+                url: '',
+                account: '',
+                password: '',
+                user_type: '0',
+            },
+            fromSchedule: {
+                schedule_year: "2019-2020",
+                schedule_term: "1",
+                schedule_type: "0"
+
+            },
+            fromScore: {
+                score_year: "2019-2020",
+                score_term: "1",
+                use_api: "0"
+            },
+            fromInfo: {},
+            schoolList: [],
+            list: [],
+            rss: [],
+            loading: false,
+            loginRules: {
+                url: [
+                    {required: true, message: '请填写或选择教务系统地址', trigger: 'change'},
+                ],
+                account: [
+                    {required: true, message: '请输入学号', trigger: 'blur'},
+                    {min: 5, max: 15, message: '长度在 5 到 15 个字符', trigger: 'blur'}
+                ],
+                password: [
+                    {required: true, message: '请输入密码', trigger: 'blur'}
+                ],
+            },
+
+        },
+
+        mounted() {
+            var _this = this;
+            axios.get('/school-list').then(function (response) {
+                _this.list = response.data;
+                _this.schoolList = response.data;
+            }).catch(function (error) {
+
+            });
+            axios.get('/rss').then(function (response) {
+                _this.rss = response.data;
+            }).catch(function (error) {
+
+            });
+
+
+        },
+        methods: {
+            clearResultData() {
+                this.showData = this.resultData[this.infoTabName]
+            },
+            request_data(url, data) {
+                var _this = this;
+                this.requesting = true;
+                this.infoTabBtnText = "查询中...";
+                axios.defaults.headers.common['token'] = this.token;
+                axios.post(url, data).then(function (response) {
+                    _this.resultData[_this.infoTabName] = response.data;
+                    _this.showData = _this.resultData[_this.infoTabName];
+                    _this.requesting = false;
+                    _this.infoTabBtnText = "查询"
+                }).catch(function (error) {
+                    _this.$message.error(error.response.data);
+                    _this.requesting = false;
+                    _this.infoTabBtnText = "查询"
+                });
+
+            },
+
+            onLogin(formName) {
+                this.$refs[formName].validate((valid) => {
+
+                    if (valid) {
+                        var _this = this;
+                        this.requesting = true;
+                        this.loginTabBtnText = "登录中...";
+                        axios.post('/login', this.formLogin).then(function (response) {
+                            _this.tabSwitch = false;
+                            _this.homeTabName = "infoTab";
+                            _this.token = response.data.token;
+                            _this.requesting = false;
+                            _this.loginTabBtnText = "登录"
+                        }).catch(function (error) {
+                            _this.$message.error(error.response.data);
+                            _this.requesting = false
+                            _this.loginTabBtnText = "登录"
+                        });
+                    }
+
+                });
+
+
+            },
+            focus() {
+                this.list = this.schoolList;
+            },
+
+            getSchoolName(input_data) {
+                if (input_data !== '') {
+                    this.loading = true;
+                    query = input_data.toLowerCase();
+                    if (query.indexOf("://") > -1) {
+                        query = query.split("//")[1]
+                    }
+                    query = query.split("/(")[0].split("/default")[0];
+
+                    setTimeout(() => {
+                        this.loading = false;
+                        this.list = this.schoolList.filter(item => {
+                            return item.url.indexOf(query) > -1 || item.name.indexOf(query) > -1 || item.code.indexOf(query) > -1
+                        })
+
+                    }, 100)
+                }
+            }
+        }
+    })
+</script>
+
+
 </body>
-</html>
 
+</html>

@@ -25,10 +25,6 @@ class Login(BaseHandler):
         result = self.school.get_login(self.data["account"], self.data["password"], self.data['user_type'])
         if result["status_code"] == 200:
             self.client, result["data"] = result["data"], {"token": random_string()}
-            # 保存学校地址
-            url = self.data['url'].split("://")[1]
-            if url not in school_list.keys():
-                school_list[url] = url
         return result
 
     @tornado.gen.coroutine
@@ -98,12 +94,12 @@ class Score(AuthHandler):
         score_term = self.data['score_term']
         data = {}
         data.update(self.result)
-        if score_year and data['status_code'] == 200:
-            if score_term:
-                data['data'] = data['data'].get(score_year, {}).get(str(score_term), "暂无该学年学期成绩")
-                return data
-            data['data'] = data['data'].get(score_year, "暂无该学年学期成绩")
-            return data
+        if data['status_code'] == 200:
+            data['data'] = data['data'].get(score_year, {}).get(str(score_term), None)
+            if not data['data']:
+                data['status_code'] = 400
+                data['data'] = "暂无成绩信息"
+
         return data
 
     @tornado.gen.coroutine

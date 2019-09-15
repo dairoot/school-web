@@ -11,27 +11,27 @@ cache_time = 86400 * 7
 application_settings = {
     'debug': DEBUG,
     'template_path': 'templates',
-    'static_path' : 'static',
+    'static_path': 'static',
 
 }
 
-school_list = {
-    "210.38.137.126:8016": "广东海洋大学",
-    "61.142.33.204": "广东科技学院",
-    "jwxt.gdyvc.cn": "广东青年职业学院",
-    "jw.gzhmt.edu.cn": "广州航海学院",
-    "222.24.62.120": "西安邮电大学",
-    "jwgl.fjnu.edu.cn": "福建师范大学",
-    "jwgl.zsc.edu.cn:90": "电子科技大学中山学院",
-    "jwxt.njupt.edu.cn": "南京邮电大学",
-    "202.116.160.170": "华南农业大学",
-    "xjw0.fjcc.edu.cn": "福建商学院",
-    "ojjx.wzu.edu.cn": "温州大学",
-    "125.221.35.100": "武汉软件工程职业学院",
-    "jwxt.gcu.edu.cn": "华南理工大学广州学院",
-    "202.200.112.200": "西安理工大学",
-    "210.37.0.22": "海南师范大学"
-}
+school_list = [
+    {"url": "http://jwgl.zsc.edu.cn:90/", "name": "电子科技大学中山学院", "code": "dianzikejidaxuezhongshanxueyuan"},
+    {"url": "http://210.38.137.126:8016/", "name": "广东海洋大学", "code": "guangdonghaiyangdaxue"},
+    {"url": "http://61.142.33.204/", "name": "广东科技学院", "code": "guangdongkejixueyuan"},
+    {"url": "http://jwxt.gdyvc.cn/", "name": "广东青年职业学院", "code": "guangdongqingnianzhiyexueyuan"},
+    {"url": "http://jw.gzhmt.edu.cn/", "name": "广州航海学院", "code": "guagnzhouhanghaixueyuan"},
+    {"url": "http://222.24.62.120/", "name": "西安邮电大学", "code": "xianyoudiandaxue"},
+    {"url": "http://jwgl.fjnu.edu.cn/", "name": "福建师范大学", "code": "fujianshifandaxue"},
+    {"url": "http://jwxt.njupt.edu.cn/", "name": "南京邮电大学", "code": "nanjingyoudiandaxue"},
+    {"url": "http://202.116.160.170/", "name": "华南农业大学", "code": "huanannongyedaxue"},
+    {"url": "http://xjw0.fjcc.edu.cn/", "name": "福建商学院", "code": "fujianshangxueyuan"},
+    {"url": "http://ojjx.wzu.edu.cn/", "name": "温州大学", "code": "wenzhoudaxue"},
+    {"url": "http://125.221.35.100/", "name": "武汉软件工程职业学院", "code": "wuhanruanjiangongchengzhiyexueyuan"},
+    {"url": "http://jwxt.gcu.edu.cn/", "name": "华南理工大学广州学院", "code": "huananligongdaxueguangzhouxueyuan"},
+    {"url": "http://202.200.112.200/", "name": "西安理工大学", "code": "xianligongdaxue"},
+    {"url": "http://210.37.0.22/", "name": "海南师范大学", "code": "hainanshifandaxue"}
+]
 
 # 开发时的日志配置，INFO 及以上级别的日志输出到 console。
 LOGGING = {
